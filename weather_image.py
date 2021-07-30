@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import math
 import os
 import sys
 
@@ -29,6 +30,13 @@ def geocode(location):
 #
 # OpenWeatherMap API
 #
+
+# https://en.wikipedia.org/wiki/Air_Quality_Health_Index_(Canada)#Calculation
+def calculate_aqhi(ozone, dioxide, particulates):
+    def element(constant, variable):
+        math.pow(math.e, constant * variable) - 1
+    aqhi = (1000 / 10.4) * (element(0.000537, ozone) + element(0.000871, dioxide) + element(0.000487, particulates))
+    return round(aqhi, 1)
 
 def get_weather_data(latlon, api):
     pass
