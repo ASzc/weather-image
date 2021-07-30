@@ -33,6 +33,7 @@ You will need a free API Key from [OpenWeatherMap](https://openweathermap.org/ap
 Install the following Python 3 modules:
 
   - `pyowm` is required
+  - `pygal` is required
   - `cairosvg` is optional, but allows for .png image output
   - `geopy` is optional, but allows human-readable locations to be used
 
