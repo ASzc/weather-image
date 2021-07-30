@@ -2,12 +2,14 @@
 
 import argparse
 import collections
+import json
 import math
 import os
 import sys
+import urllib.parse
+import urllib.request
 
 import pygal
-import pyowm
 
 #
 # Location Parsing
@@ -36,6 +38,20 @@ def geocode(location):
 # OpenWeatherMap API
 #
 
+def owm(appid, root_url="http://api.openweathermap.org/data/2.5"):
+    def get(location, method, **extra):
+        p = {
+            "lat": location.lat,
+            "lon": location.lon,
+            "appid": appid,
+        }
+        p.update(extra)
+        params = urllib.parse.urlencode(p)
+        with urllib.request.urlopen(f"{root_url}/{method}?{params}") as f:
+            data = json.loads(f.read().decode("utf-8"))
+        return data
+    return get
+
 # https://en.wikipedia.org/wiki/Air_Quality_Health_Index_(Canada)#Calculation
 def calculate_aqhi(ozone, dioxide, particulates):
     def element(constant, variable):
@@ -43,13 +59,12 @@ def calculate_aqhi(ozone, dioxide, particulates):
     aqhi = (1000 / 10.4) * (element(0.000537, ozone) + element(0.000871, dioxide) + element(0.000487, particulates))
     return round(aqhi, 1)
 
-def get_weather_data(loc, weather, pollution):
-    wd = weather.one_call(lat=loc.lat, lon=loc.lon)
-    pd = pollution.air_quality_at_coords(lat=loc.lat, lon=loc.lon)
-    pdf = pollution.air_quality_forecast_at_coords(lat=loc.lat, lon=loc.lon)
-    print(wd)
-    print(pd)
-    print(pdf)
+def get_weather_data(loc, owm):
+    w = owm(loc, "onecall", exclude="minutely,daily,alerts")
+    ap = owm(loc, "air_pollution")
+    apf = owm(loc, "air_pollution/forecast")
+
+    # TODO
 
 #
 # Chart and Rendering
@@ -77,12 +92,7 @@ def main(raw_args):
     with open(args.api_key or os.path.expanduser(default_api_key)) as f:
         api_key = f.read().strip()
 
-    owm = pyowm.OWM(api_key)
-    weather = get_weather_data(
-        args.location,
-        owm.weather_manager(),
-        owm.airpollution_manager(),
-    )
+    weather = get_weather_data(args.location, owm(api_key))
     chart = generate_chart(weather)
     render_image(chart, args.output)
 
