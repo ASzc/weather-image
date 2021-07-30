@@ -112,8 +112,12 @@ def get_weather_data(loc, owm):
 #
 
 def generate_chart(weather):
+    temp_major = 5
+
     x_labels = []
-    temp = []
+    temps = []
+    min_temp = 999999
+    max_temp = -999999
     pop = []
     aqhi = []
     hours = 0
@@ -122,7 +126,13 @@ def generate_chart(weather):
         #desc = data["weather"]["main"]
         x_labels.append(hour)
 
-        temp.append(data["temp"])
+        temp = data["temp"]
+        temps.append(temp)
+        if temp > max_temp:
+            max_temp = temp
+        if temp < min_temp:
+            min_temp = temp
+
         pop.append(data.get("pop", 0) * 100)
         aqhi.append(data["aqhi"] * 10)
 
@@ -130,17 +140,25 @@ def generate_chart(weather):
         if hours >= 24:
             break
 
+    min_temp = round(min_temp)
+    max_temp = round(max_temp)
+    y_min = min_temp - (min_temp % temp_major)
+    y_max = temp_major * round(max_temp / temp_major)
+    y_labels = list(range(y_min, y_max + 1, 1))
+
     chart = pygal.Line(
         #interpolate="cubic",
         style=pygal.style.DarkStyle,
         x_labels = x_labels,
         #x_label_rotation=90,
         secondary_range=(0, 100),
+        y_labels = y_labels,
+        y_labels_major_every=temp_major,
         #legend_at_bottom=True,
         #legend_at_bottom_columns=3,
     )
 
-    chart.add("°C", temp)
+    chart.add("°C", temps)
     chart.add("PoP", pop, secondary=True)
     chart.add("AQHI", aqhi, secondary=True)
 
