@@ -1,38 +1,46 @@
 #!/usr/bin/env python3
 
 import argparse
+import os
 import sys
 
 #
-# Optional geopy dependency
+# Location Parsing
 #
 
-try:
-    import geopy.geocoders
-    nominatim = geopy.geocoders.Nominatim(user_agent="weather_image.py")
-    def geocode(location):
-        loc = nominatim.geocode
-        return (loc.latitude, loc.longitude)
-except ModuleNotFoundError:
-    def geocode(location):
-        parts = location.split(",")
-        if len(parts) == 2:
-            return (parts[0], parts[1])
-        else:
+geocoder = None
+def geocode(location):
+    global geocoder
+
+    parts = location.split(",")
+    if len(parts) == 2:
+        return (float(parts[0]), float(parts[1]))
+    else:
+        try:
+            import geopy.geocoders
+        except ModuleNotFoundError:
             raise Exception("geopy module not installed, specify location as lat,lon only")
+
+        if not geocoder:
+            geocoder = geopy.geocoders.Nominatim(user_agent="weather_image.py")
+        loc = geocoder.geocode(location)
+        return (loc.latitude, loc.longitude)
 
 #
 # OpenWeatherMap API
 #
 
-def get_weather_data(location):
+def get_weather_data(latlon, api):
     pass
 
 #
-# Rendering
+# Chart and Rendering
 #
 
-def render_image(weather):
+def generate_chart(weather):
+    pass
+
+def render_image(chart, output_path):
     pass
 
 #
@@ -42,7 +50,8 @@ def render_image(weather):
 def main(raw_args):
     default_api_key = "~/.openweathermap_api_key"
     parser = argparse.ArgumentParser(description="Create an image showing weather data for location")
-    parser.add_argument("location", help="Location for the weather. Use lat,lon. Example: 51.046,-114.065 If geopy is installed, you can also just give a location textually. Example: Calgary")
+    parser.add_argument("location", type=geocode, help="Location for the weather. Use lat,lon. Example: 51.046,-114.065 If geopy is installed, you can also just give a location textually. Example: Calgary")
+    parser.add_argument("output", help="Output path for the image. Defaults to svg format. If cairosvg is installed, you can also specify .png extension in the path for png formatted output.")
     parser.add_argument("-k", "--api-key", help=f"Override API key file location. Default {default_api_key}")
 
     args = parser.parse_args(raw_args)
@@ -50,9 +59,9 @@ def main(raw_args):
     with open(args.api_key or os.path.expanduser(default_api_key)) as f:
         api_key = f.read()
 
-    weather = get_weather_data(location)
-    # TODO output path
-    render_image(weather, outputTODO)
+    weather = get_weather_data(args.location, api_key)
+    chart = generate_chart(weather)
+    render_image(chart, args.output)
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
