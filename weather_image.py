@@ -111,7 +111,7 @@ def get_weather_data(loc, owm):
 # Chart and Rendering
 #
 
-def generate_chart(weather):
+def generate_chart(weather, width=None, height=None):
     temp_major = 5
 
     x_labels = []
@@ -147,6 +147,8 @@ def generate_chart(weather):
     y_labels = list(range(y_min, y_max + 1, 1))
 
     chart = pygal.Line(
+        width=width,
+        height=height,
         #interpolate="cubic",
         style=pygal.style.DarkStyle,
         x_labels = x_labels,
@@ -164,10 +166,11 @@ def generate_chart(weather):
 
     return chart
 
-def render_image(chart, output_path):
+def render_image(chart, output_path, dpi=72):
     if output_path.endswith(".png"):
         # PNG
-        r = chart.render_to_png
+        def r(path):
+            chart.render_to_png(path, dpi=dpi)
     else:
         # SVG
         r = chart.render_to_file
@@ -182,6 +185,9 @@ def main(raw_args):
     parser = argparse.ArgumentParser(description="Create an image showing weather data for location")
     parser.add_argument("location", type=geocode, help="Location for the weather. Use lat,lon. Example: 51.046,-114.065 If geopy is installed, you can also just give a location textually. Example: Calgary")
     parser.add_argument("output", help="Output path for the image. Defaults to svg format. If cairosvg is installed, you can also specify .png extension in the path for png formatted output.")
+    parser.add_argument("-w", "--width", default=640, help="Horizonal size in pixels. Default 640")
+    parser.add_argument("-v", "--height", default=400, help="Vertical size in pixels. Default 400")
+    parser.add_argument("-d", "--dpi", default=72, help="Render scaling in dots-per-inch. Only applicable when output has a .png extension. Default 72")
     parser.add_argument("-k", "--api-key", help=f"Override API key file location. Default {default_api_key}")
 
     args = parser.parse_args(raw_args)
@@ -190,8 +196,8 @@ def main(raw_args):
         api_key = f.read().strip()
 
     weather = get_weather_data(args.location, owm(api_key))
-    chart = generate_chart(weather)
-    render_image(chart, args.output)
+    chart = generate_chart(weather, args.width, args.height)
+    render_image(chart, args.output, args.dpi)
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
