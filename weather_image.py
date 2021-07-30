@@ -96,6 +96,8 @@ def get_weather_data(loc, owm):
             c = ap_by_hour[min(ap_by_hour.keys(), key=lambda x: abs(x - dt))]
         data["pollution"] = c
         data["aqhi"] = calculate_aqhi(c["o3"], c["no2"], c["pm2_5"])
+        # Flatten weather key
+        data["weather"] = data["weather"][0]
 
     add_hour(w["current"])
     for hour in w["hourly"]:
@@ -110,7 +112,39 @@ def get_weather_data(loc, owm):
 #
 
 def generate_chart(weather):
-    pass
+    x_labels = []
+    temp = []
+    pop = []
+    aqhi = []
+    hours = 0
+    for data in weather:
+        hour = data["dt"].strftime("%H")
+        #desc = data["weather"]["main"]
+        x_labels.append(hour)
+
+        temp.append(data["temp"])
+        pop.append(data.get("pop", 0) * 100)
+        aqhi.append(data["aqhi"] * 10)
+
+        hours += 1
+        if hours >= 24:
+            break
+
+    chart = pygal.Line(
+        #interpolate="cubic",
+        style=pygal.style.DarkStyle,
+        x_labels = x_labels,
+        #x_label_rotation=90,
+        secondary_range=(0, 100),
+        #legend_at_bottom=True,
+        #legend_at_bottom_columns=3,
+    )
+
+    chart.add("°C", temp)
+    chart.add("PoP", pop, secondary=True)
+    chart.add("AQHI", aqhi, secondary=True)
+
+    return chart
 
 def render_image(chart, output_path):
     if output_path.endswith(".png"):
@@ -139,7 +173,7 @@ def main(raw_args):
 
     weather = get_weather_data(args.location, owm(api_key))
     chart = generate_chart(weather)
-    #render_image(chart, args.output)
+    render_image(chart, args.output)
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
