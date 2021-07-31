@@ -111,7 +111,7 @@ def get_weather_data(loc, owm):
 # Chart and Rendering
 #
 
-def generate_chart(weather, width=None, height=None):
+def generate_charts(weather, width=None, height=None):
     temp_major = 5
 
     x_labels = []
@@ -146,35 +146,50 @@ def generate_chart(weather, width=None, height=None):
     y_max = temp_major * round(max_temp / temp_major)
     y_labels = list(range(y_min, y_max + 1, 1))
 
+    charts = {}
+
     chart = pygal.Line(
         width=width,
         height=height,
         #interpolate="cubic",
         style=pygal.style.DarkStyle,
         x_labels = x_labels,
-        #x_label_rotation=90,
-        secondary_range=(0, 100),
         y_labels = y_labels,
         y_labels_major_every=temp_major,
-        #legend_at_bottom=True,
-        #legend_at_bottom_columns=3,
+        show_legend=False,
     )
 
     chart.add("°C", temps)
-    chart.add("PoP", pop, secondary=True)
-    chart.add("AQHI", aqhi, secondary=True)
+    charts["temperature"] = chart
 
-    return chart
+    chart = pygal.Line(
+        width=width,
+        height=height,
+        #interpolate="cubic",
+        style=pygal.style.DarkStyle,
+        x_labels = x_labels,
+        y_labels = range(0, 110, 10),
+        y_labels_major_every=10,
+    )
 
-def render_image(chart, output_path, dpi=72):
-    if output_path.endswith(".png"):
-        # PNG
-        def r(path):
-            chart.render_to_png(path, dpi=dpi)
-    else:
-        # SVG
-        r = chart.render_to_file
-    r(output_path)
+    chart.add("PoP", pop)
+    chart.add("AQHI", aqhi)
+    charts["pop"] = chart
+
+    return charts
+
+def render_images(charts, output_path, dpi=72):
+    root, ext = os.path.splitext(output_path)
+    for name, chart in charts.items():
+        if ext == ".png":
+            # PNG
+            def r(path):
+                chart.render_to_png(path, dpi=dpi)
+        else:
+            # SVG
+            r = chart.render_to_file
+        path = f"{root}_{name}{ext}"
+        r(path)
 
 #
 # Main
@@ -184,7 +199,7 @@ def main(raw_args):
     default_api_key = "~/.openweathermap_api_key"
     parser = argparse.ArgumentParser(description="Create an image showing weather data for location")
     parser.add_argument("location", type=geocode, help="Location for the weather. Use lat,lon. Example: 51.046,-114.065 If geopy is installed, you can also just give a location textually. Example: Calgary")
-    parser.add_argument("output", help="Output path for the image. Defaults to svg format. If cairosvg is installed, you can also specify .png extension in the path for png formatted output.")
+    parser.add_argument("output", help="Output path for the image. The filename in the path serves as a prefix for the multiple images that will be produced. Defaults to svg format. If cairosvg is installed, you can also specify .png extension in the path for png formatted output.")
     parser.add_argument("-w", "--width", default=640, help="Horizonal size in pixels. Default 640")
     parser.add_argument("-v", "--height", default=400, help="Vertical size in pixels. Default 400")
     parser.add_argument("-d", "--dpi", default=72, help="Render scaling in dots-per-inch. Only applicable when output has a .png extension. Default 72")
@@ -196,8 +211,8 @@ def main(raw_args):
         api_key = f.read().strip()
 
     weather = get_weather_data(args.location, owm(api_key))
-    chart = generate_chart(weather, args.width, args.height)
-    render_image(chart, args.output, args.dpi)
+    charts = generate_charts(weather, args.width, args.height)
+    render_images(charts, args.output, args.dpi)
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
