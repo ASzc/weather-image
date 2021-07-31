@@ -12,6 +12,12 @@ import urllib.request
 
 import pygal
 
+pytz_available = True
+try:
+    import pytz
+except ModuleNotFoundError:
+    pytz_available = False
+
 #
 # Location Parsing
 #
@@ -77,6 +83,7 @@ def get_weather_data(loc, owm):
         add_ap(hour)
 
     hourly = []
+    localize = None
     def add_hour(data):
         hourly.append(data)
         # Save timestamp
@@ -84,7 +91,7 @@ def get_weather_data(loc, owm):
         # Convert timestamps to native datetime object
         for key in ("dt", "sunrise", "sunset"):
             if key in data:
-                data[key] = datetime.datetime.fromtimestamp(data[key])
+                data[key] = localize(datetime.datetime.fromtimestamp(data[key]))
         # Convert Kelvin to Celcius
         for key in ("dew_point", "feels_like", "temp"):
             data[key] = round(data[key] - 273.15, 2)
@@ -98,6 +105,11 @@ def get_weather_data(loc, owm):
         data["aqhi"] = calculate_aqhi(c["o3"], c["no2"], c["pm2_5"])
         # Flatten weather key
         data["weather"] = data["weather"][0]
+
+    if pytz_available:
+        localize = pytz.timezone(w["timezone"]).localize
+    else:
+        localize = lambda x: x
 
     #add_hour(w["current"])
     for hour in w["hourly"]:
@@ -179,7 +191,9 @@ def generate_charts(weather, width=None, height=None):
     return charts
 
 def render_images(charts, output_path, dpi=72):
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    dirname = os.path.dirname(output_path)
+    if dirname:
+        os.makedirs(dirname, exist_ok=True)
     root, ext = os.path.splitext(output_path)
     for name, chart in charts.items():
         if ext == ".png":
