@@ -35,10 +35,10 @@ Install the following Python 3 modules:
   - `pygal` is required
   - `cairosvg` is optional, but allows for .png image output
   - `geopy` is optional, but allows human-readable locations to be used
-  - `pytz` is optional, but allows for correction between local time and the forecasted location's time
+  - `pytz` and `tzlocal` are optional, but allows for correction between local time and the forecasted location's time
 
 ```bash
-pip3 install pygal cairosvg geopy pytz
+pip3 install pygal cairosvg geopy pytz tzlocal
 ```
 
 Then call the script, with a location and a path to write the image to:

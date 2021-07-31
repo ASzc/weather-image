@@ -15,7 +15,8 @@ import pygal
 pytz_available = True
 try:
     import pytz
-except ModuleNotFoundError:
+    import tzlocal
+except ModuleNotFoundError as e:
     pytz_available = False
 
 #
@@ -83,7 +84,6 @@ def get_weather_data(loc, owm):
         add_ap(hour)
 
     hourly = []
-    localize = None
     def add_hour(data):
         hourly.append(data)
         # Save timestamp
@@ -106,10 +106,19 @@ def get_weather_data(loc, owm):
         # Flatten weather key
         data["weather"] = data["weather"][0]
 
-    if pytz_available:
-        localize = pytz.timezone(w["timezone"]).localize
-    else:
-        localize = lambda x: x
+    localtz = None
+    desttz = None
+    def localize(dt):
+        nonlocal localtz
+        nonlocal desttz
+
+        if pytz_available:
+            if localtz is None:
+                localtz = tzlocal.get_localzone()
+                desttz = pytz.timezone(w["timezone"])
+            return localtz.localize(dt).astimezone(desttz)
+        else:
+            return dt
 
     #add_hour(w["current"])
     for hour in w["hourly"]:
