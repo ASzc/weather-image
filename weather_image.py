@@ -179,6 +179,7 @@ def generate_charts(weather, width=None, height=None):
     return charts
 
 def render_images(charts, output_path, dpi=72):
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
     root, ext = os.path.splitext(output_path)
     for name, chart in charts.items():
         if ext == ".png":
