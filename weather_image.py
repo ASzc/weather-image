@@ -204,12 +204,15 @@ def main(raw_args):
     parser.add_argument("-w", "--width", default=640, help="Horizonal size in pixels. Default 640")
     parser.add_argument("-v", "--height", default=400, help="Vertical size in pixels. Default 400")
     parser.add_argument("-d", "--dpi", default=72, help="Render scaling in dots-per-inch. Only applicable when output has a .png extension. Default 72")
-    parser.add_argument("-k", "--api-key", help=f"Override API key file location. Default {default_api_key}")
+    parser.add_argument("-k", "--api-key", help=f"Override API key file location. Ignored if OWM_API_KEY is present in environment variables. Default {default_api_key}")
 
     args = parser.parse_args(raw_args)
 
-    with open(args.api_key or os.path.expanduser(default_api_key)) as f:
-        api_key = f.read().strip()
+    if "OWM_API_KEY" in os.environ:
+        api_key = os.environ["OWM_API_KEY"].strip()
+    else:
+        with open(args.api_key or os.path.expanduser(default_api_key)) as f:
+            api_key = f.read().strip()
 
     weather = get_weather_data(args.location, owm(api_key))
     charts = generate_charts(weather, args.width, args.height)
