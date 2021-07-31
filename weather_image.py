@@ -99,7 +99,7 @@ def get_weather_data(loc, owm):
         # Flatten weather key
         data["weather"] = data["weather"][0]
 
-    add_hour(w["current"])
+    #add_hour(w["current"])
     for hour in w["hourly"]:
         add_hour(hour)
 
