@@ -13,12 +13,12 @@ These are good for many purposes. One example is filling in gaps on your [securi
 You can access the images through HTTP on the Github Pages site:
 
 ```bash
-TODO curl
+curl -LO https://aszc.github.io/weather-image/calgary_pop.png
 ```
 
 The images are updated hourly.
 
-For all available locations, please see the index [here](TODO).
+For all available locations, please see the index [here](https://github.com/ASzc/weather-image/tree/gh-pages).
 
 ### Is your location not available?
 
