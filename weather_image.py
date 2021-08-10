@@ -164,7 +164,7 @@ def generate_charts(weather, width=None, height=None):
     min_temp = round(min_temp)
     max_temp = round(max_temp)
     y_min = min_temp - (min_temp % temp_major)
-    y_max = temp_major * round(max_temp / temp_major)
+    y_max = temp_major * (round(max_temp / temp_major) + 1)
     y_labels = list(range(y_min, y_max + 1, 1))
 
     charts = {}
