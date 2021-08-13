@@ -114,7 +114,7 @@ def get_weather_data(loc, owm):
 
         if pytz_available:
             if localtz is None:
-                localtz = tzlocal.get_localzone()
+                localtz = pytz.timezone(tzlocal.get_localzone().key)
                 desttz = pytz.timezone(w["timezone"])
             return localtz.localize(dt).astimezone(desttz)
         else:
