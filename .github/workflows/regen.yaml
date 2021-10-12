@@ -1,4 +1,4 @@
-name: regen
+name: regen2
 
 on:
   schedule:
