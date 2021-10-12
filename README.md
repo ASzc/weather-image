@@ -4,7 +4,7 @@
 
 Static charts of hourly weather forecast data, from [OpenWeatherMap](https://openweathermap.org/).
 
-These are good for many purposes. One example is filling in gaps on your [security camera monitor](https://github.com/SvenVD/rpisurv) with useful information.
+These are good for many purposes. One example is filling in gaps on your [security camera monitor](https://github.com/SvenVD/rpisurv/) with useful information.
 
 ## Usage
 
