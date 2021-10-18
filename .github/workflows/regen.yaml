@@ -21,7 +21,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install pygal cairosvg pytz tzlocal
+        python -m pip install pygal==2.4.0 cairosvg==2.5.2 pytz==2021.3 tzlocal==3.0
     - name: Generate images
       env:
         OWM_API_KEY: ${{ secrets.OWM_API_KEY }}
