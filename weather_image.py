@@ -7,6 +7,8 @@ import json
 import math
 import os
 import sys
+import time
+import urllib.error
 import urllib.parse
 import urllib.request
 
@@ -55,8 +57,18 @@ def owm(appid, root_url="http://api.openweathermap.org/data/2.5"):
         }
         p.update(extra)
         params = urllib.parse.urlencode(p)
-        with urllib.request.urlopen(f"{root_url}/{method}?{params}") as f:
-            data = json.loads(f.read().decode("utf-8"))
+        for i in range(1,6,2):
+            try:
+                with urllib.request.urlopen(f"{root_url}/{method}?{params}") as f:
+                    data = json.loads(f.read().decode("utf-8"))
+            except urllib.error.HTTPError as e:
+                print(e)
+                time.sleep(2 ** i)
+            else:
+                break
+        else:
+            print("Unable to contact OWM API after several attempts, aborting")
+            return None
         return data
     return get
 
