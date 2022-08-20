@@ -89,11 +89,16 @@ def get_weather_data(loc, owm):
     #pprint.pprint(apf)
 
     ap_by_hour = collections.OrderedDict()
+    aqi=True
     def add_ap(data):
         ap_by_hour[data["dt"]] = data["components"]
-    add_ap(ap["list"][0])
-    for hour in apf["list"]:
-        add_ap(hour)
+    try:
+        add_ap(ap["list"][0])
+    except IndexError:
+        aqi=False
+    else:
+        for hour in apf["list"]:
+            add_ap(hour)
 
     hourly = []
     def add_hour(data):
@@ -108,13 +113,14 @@ def get_weather_data(loc, owm):
         for key in ("dew_point", "feels_like", "temp"):
             data[key] = round(data[key] - 273.15, 2)
         # Add AQHI
-        try:
-            c = ap_by_hour[dt]
-        except KeyError:
-            # Find closest match for those missing exact match
-            c = ap_by_hour[min(ap_by_hour.keys(), key=lambda x: abs(x - dt))]
-        data["pollution"] = c
-        data["aqhi"] = calculate_aqhi(c["o3"], c["no2"], c["pm2_5"])
+        if aqi:
+            try:
+                c = ap_by_hour[dt]
+            except KeyError:
+                # Find closest match for those missing exact match
+                c = ap_by_hour[min(ap_by_hour.keys(), key=lambda x: abs(x - dt))]
+            data["pollution"] = c
+            data["aqhi"] = calculate_aqhi(c["o3"], c["no2"], c["pm2_5"])
         # Flatten weather key
         data["weather"] = data["weather"][0]
 
@@ -167,7 +173,8 @@ def generate_charts(weather, width=None, height=None):
             min_temp = temp
 
         pop.append(data.get("pop", 0) * 100)
-        aqhi.append(data["aqhi"] * 10)
+        if "aqhi" in data:
+            aqhi.append(data["aqhi"] * 10)
 
         hours += 1
         if hours >= 24:
@@ -206,7 +213,8 @@ def generate_charts(weather, width=None, height=None):
     )
 
     chart.add("PoP", pop)
-    chart.add("AQHI", aqhi)
+    if aqhi:
+        chart.add("AQHI", aqhi)
     charts["pop"] = chart
 
     return charts
