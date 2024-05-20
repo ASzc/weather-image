@@ -245,7 +245,7 @@ def main(raw_args):
     parser.add_argument("location", type=geocode, help="Location for the weather. Use lat,lon. Example: 51.046,-114.065 If geopy is installed, you can also just give a location textually. Example: Calgary")
     parser.add_argument("output", help="Output path for the image. The filename in the path serves as a prefix for the multiple images that will be produced. Defaults to svg format. If cairosvg is installed, you can also specify .png extension in the path for png formatted output.")
     parser.add_argument("-w", "--width", default=640, help="Horizonal size in pixels. Default 640")
-    parser.add_argument("-v", "--height", default=400, help="Vertical size in pixels. Default 400")
+    parser.add_argument("-v", "--height", default=360, help="Vertical size in pixels. Default 360")
     parser.add_argument("-d", "--dpi", default=72, help="Render scaling in dots-per-inch. Only applicable when output has a .png extension. Default 72")
     parser.add_argument("-k", "--api-key", help=f"Override API key file location. Ignored if OWM_API_KEY is present in environment variables. Default {default_api_key}")
 
